@@ -7,15 +7,15 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-            
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl border border-gray-100 p-8">
                 <div class="flex items-center gap-6">
-                    <div class="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-600 shadow-inner">
+                    <div class="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-600 shadow-inner shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                         </svg>
                     </div>
-                    
+
                     <div>
                         <h3 class="text-2xl font-bold text-gray-900">Halo, {{ Auth::user()->name }}!</h3>
                         <p class="text-gray-500">Selamat datang kembali di <span class="text-primary-600 font-medium">Brookal Travel</span>. Siap untuk petualangan hari ini?</p>
@@ -24,7 +24,7 @@
             </div>
 
             @if(Auth::user()->role === 'admin' || Auth::user()->role === 'owner')
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                         <div class="text-gray-500 text-sm font-medium mb-1">Total Pendapatan</div>
@@ -80,19 +80,40 @@
                 </div>
 
             @else
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                    
+
                     <div class="space-y-6">
-                        
+
+                        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition">
+                            <div class="absolute right-0 top-0 w-24 h-24 bg-primary-50 rounded-bl-full -z-0 group-hover:scale-110 transition-transform duration-500"></div>
+
+                            <div class="relative z-10 flex items-center gap-5">
+                                <div class="w-14 h-14 bg-primary-100 rounded-xl flex items-center justify-center text-primary-600 shrink-0 shadow-inner">
+                                    <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Membership Points</p>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="text-3xl font-extrabold text-primary-600">{{ number_format(Auth::user()->points ?? 0, 0, ',', '.') }}</span>
+                                        <span class="text-sm font-bold text-gray-400">Pts</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="relative z-10 text-xs text-gray-500 mt-4 border-t border-gray-50 pt-3">
+                                <span class="text-primary-600 font-bold">+10 Poin</span> otomatis ditambahkan setiap kali transaksimu lunas.
+                            </p>
+                        </div>
+
                         <div class="bg-primary-600 rounded-2xl p-8 text-white shadow-xl shadow-primary-500/20 relative overflow-hidden group">
                             <div class="absolute -right-10 -top-10 w-32 h-32 bg-white/10 rounded-full group-hover:scale-150 transition duration-500"></div>
                             <div class="absolute -left-10 -bottom-10 w-24 h-24 bg-white/10 rounded-full group-hover:scale-150 transition duration-500 delay-100"></div>
-                            
+
                             <div class="relative z-10">
                                 <h3 class="text-2xl font-bold mb-3">Mau liburan ke mana?</h3>
                                 <p class="text-primary-100 mb-8 leading-relaxed">Temukan ratusan destinasi menarik di seluruh Indonesia dan buat kenangan tak terlupakan.</p>
-                                
+
                                 <a href="{{ route('customer.packages.index') }}" class="inline-flex items-center justify-center w-full bg-white text-primary-600 font-bold py-3.5 px-6 rounded-xl hover:bg-gray-50 transition shadow-sm group-hover:shadow-md">
                                     <span>Cari Paket Wisata</span>
                                     <svg class="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
@@ -108,12 +129,12 @@
                                 <div>
                                     <h3 class="font-bold text-gray-800">Butuh Bantuan?</h3>
                                     <p class="text-gray-500 text-sm mb-3">Hubungi admin kami jika ada kendala.</p>
-                                    
-                                    <a href="https://wa.me/6281234567890?text=Halo%20Admin%20Brookal%20Travel,%20saya%20butuh%20bantuan." 
+
+                                    <a href="https://wa.me/6285720031617?text=Halo%20Admin%20Brookal%20Travel,%20saya%20butuh%20bantuan."
                                        target="_blank"
                                        class="inline-flex items-center gap-2 text-green-600 font-bold hover:text-green-700 hover:underline transition">
-                                       +62 812-3456-7890
-                                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                        +62 8572-0031-617
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                                     </a>
                                 </div>
                             </div>
@@ -146,11 +167,11 @@
                                         <div class="shrink-0">
                                             <img src="{{ Str::startsWith($trx->package->image, 'http') ? $trx->package->image : asset('storage/' . $trx->package->image) }}" class="w-20 h-20 rounded-xl object-cover shadow-sm">
                                         </div>
-                                        
+
                                         <div class="flex-grow">
                                             <div class="flex justify-between items-start">
                                                 <h4 class="font-bold text-gray-900 text-lg">{{ $trx->package->name }}</h4>
-                                                @if($trx->status == 'pending') 
+                                                @if($trx->status == 'pending')
                                                     <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">UNPAID</span>
                                                 @elseif($trx->status == 'approved')
                                                     <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-green-100 text-green-700 border border-green-200">LUNAS</span>
@@ -158,7 +179,7 @@
                                                     <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-yellow-100 text-yellow-700 border border-yellow-200">PROSES</span>
                                                 @endif
                                             </div>
-                                            
+
                                             <div class="flex items-center gap-4 mt-1 text-sm text-gray-500">
                                                 <span class="flex items-center gap-1">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -172,8 +193,8 @@
 
                                             <div class="flex justify-between items-end mt-3">
                                                 <div class="text-primary-600 font-bold text-lg">Rp {{ number_format($trx->total_price, 0, ',', '.') }}</div>
-                                                
-                                                @if($trx->status == 'pending') 
+
+                                                @if($trx->status == 'pending')
                                                     <a href="{{ route('customer.transactions.show', $trx->id) }}" class="text-sm font-bold text-red-600 hover:text-red-700 hover:underline">Bayar Sekarang &rarr;</a>
                                                 @else
                                                     <a href="{{ route('customer.transactions.show', $trx->id) }}" class="text-sm font-semibold text-gray-500 hover:text-gray-800">Detail &rarr;</a>

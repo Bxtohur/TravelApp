@@ -45,8 +45,95 @@
                 </div>
 
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl border border-gray-100">
+                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50">
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-lg">Laporan Pendapatan Detail</h3>
+                            <p class="text-sm text-gray-500">Rincian transaksi sukses berdasarkan bulan.</p>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+    <form method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2">
+        <select name="month" onchange="this.form.submit()" class="border-gray-300 focus:border-primary-500 focus:ring-primary-500 rounded-lg shadow-sm text-sm font-medium text-gray-700">
+            @php
+                $months = [
+                    '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+                    '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+                    '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+                ];
+            @endphp
+            @foreach($months as $num => $name)
+                <option value="{{ $num }}" {{ $selectedMonth == $num ? 'selected' : '' }}>{{ $name }}</option>
+            @endforeach
+        </select>
+        
+        <select name="year" onchange="this.form.submit()" class="border-gray-300 focus:border-primary-500 focus:ring-primary-500 rounded-lg shadow-sm text-sm font-medium text-gray-700">
+            @for($y = date('Y'); $y >= 2024; $y--)
+                <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
+            @endfor
+        </select>
+    </form>
+
+    <div class="h-8 w-px bg-gray-200 mx-1"></div> <a href="{{ route('dashboard.export', ['month' => $selectedMonth, 'year' => $selectedYear]) }}" 
+       class="inline-flex items-center gap-2 bg-green-50 text-green-700 border border-green-200 font-bold py-2 px-4 rounded-lg hover:bg-green-100 transition shadow-sm text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        Export
+    </a>
+</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-100 border-b border-gray-100 bg-white">
+                        <div class="p-6">
+                            <div class="text-sm text-gray-500 font-medium">Pendapatan Bulan Ini</div>
+                            <div class="text-2xl font-extrabold text-primary-600 mt-1">Rp {{ number_format($monthlyStats['income'], 0, ',', '.') }}</div>
+                        </div>
+                        <div class="p-6">
+                            <div class="text-sm text-gray-500 font-medium">Transaksi Sukses</div>
+                            <div class="text-2xl font-extrabold text-gray-800 mt-1">{{ $monthlyStats['trx_count'] }} <span class="text-base font-normal text-gray-500">Trx</span></div>
+                        </div>
+                        <div class="p-6">
+                            <div class="text-sm text-gray-500 font-medium">Total Tamu (Pax)</div>
+                            <div class="text-2xl font-extrabold text-gray-800 mt-1">{{ $monthlyStats['pax_count'] }} <span class="text-base font-normal text-gray-500">Orang</span></div>
+                        </div>
+                    </div>
+
+                    <div class="relative overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3">Tgl Transaksi</th>
+                                    <th class="px-6 py-3">Pelanggan</th>
+                                    <th class="px-6 py-3">Paket Wisata</th>
+                                    <th class="px-6 py-3 text-center">Pax</th>
+                                    <th class="px-6 py-3 text-right">Nominal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($monthlyTransactions as $trx)
+                                <tr class="bg-white border-b hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ $trx->created_at->format('d M Y') }}</td>
+                                    <td class="px-6 py-4 font-medium text-gray-900">{{ $trx->user->name }}</td>
+                                    <td class="px-6 py-4">{{ $trx->package->name }}</td>
+                                    <td class="px-6 py-4 text-center">{{ $trx->pax_count }}</td>
+                                    <td class="px-6 py-4 text-right font-medium text-primary-600">Rp {{ number_format($trx->total_price, 0, ',', '.') }}</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="5" class="px-6 py-8 text-center text-gray-400">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                            Tidak ada transaksi sukses pada bulan ini.
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl border border-gray-100 mt-6">
                     <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800 text-lg">5 Transaksi Terbaru</h3>
+                        <h3 class="font-bold text-gray-800 text-lg">5 Aktivitas Transaksi Terbaru</h3>
                         <a href="{{ route('admin.transactions.index') }}" class="text-sm text-primary-600 hover:underline">Lihat Semua</a>
                     </div>
                     <div class="relative overflow-x-auto">
@@ -66,10 +153,14 @@
                                     <td class="px-6 py-4">{{ $trx->package->name }}</td>
                                     <td class="px-6 py-4">Rp {{ number_format($trx->total_price, 0, ',', '.') }}</td>
                                     <td class="px-6 py-4">
-                                        @if($trx->status == 'pending') <span class="text-gray-500 font-bold text-xs bg-gray-100 px-2 py-1 rounded">Pending</span>
-                                        @elseif($trx->status == 'waiting_approval') <span class="text-yellow-600 font-bold text-xs bg-yellow-100 px-2 py-1 rounded">Cek Bukti</span>
-                                        @elseif($trx->status == 'approved') <span class="text-green-600 font-bold text-xs bg-green-100 px-2 py-1 rounded">Lunas</span>
-                                        @else <span class="text-red-600 font-bold text-xs bg-red-100 px-2 py-1 rounded">Ditolak</span>
+                                        @if($trx->status == 'approved' && now()->format('Y-m-d') >= $trx->tour_date->format('Y-m-d'))
+                                            <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">SELESAI</span>
+                                        @elseif($trx->status == 'pending')
+                                            <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">UNPAID</span>
+                                        @elseif($trx->status == 'approved')
+                                            <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-green-100 text-green-700 border border-green-200">LUNAS</span>
+                                        @else
+                                            <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-yellow-100 text-yellow-700 border border-yellow-200">PROSES</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -82,9 +173,7 @@
             @else
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-
                     <div class="space-y-6">
-
                         <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition">
                             <div class="absolute right-0 top-0 w-24 h-24 bg-primary-50 rounded-bl-full -z-0 group-hover:scale-110 transition-transform duration-500"></div>
 
@@ -171,13 +260,17 @@
                                         <div class="flex-grow">
                                             <div class="flex justify-between items-start">
                                                 <h4 class="font-bold text-gray-900 text-lg">{{ $trx->package->name }}</h4>
-                                                @if($trx->status == 'pending')
+                                                
+                                                @if($trx->status == 'approved' && now()->format('Y-m-d') >= $trx->tour_date->format('Y-m-d'))
+                                                    <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">SELESAI</span>
+                                                @elseif($trx->status == 'pending')
                                                     <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">UNPAID</span>
                                                 @elseif($trx->status == 'approved')
                                                     <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-green-100 text-green-700 border border-green-200">LUNAS</span>
                                                 @else
                                                     <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-yellow-100 text-yellow-700 border border-yellow-200">PROSES</span>
                                                 @endif
+
                                             </div>
 
                                             <div class="flex items-center gap-4 mt-1 text-sm text-gray-500">

@@ -9,6 +9,8 @@ use App\Models\Package;
 use App\Http\Controllers\Customer\TransactionController as CustomerTransactionController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Owner\ReportController as OwnerReportController;
+use Rap2hpoutre\FastExcel\FastExcel;
+use Illuminate\Support\Facades\Auth;
 
 Route::get("/", function () {
     // Ambil 3 paket buat ditampilkan di halaman depan
@@ -22,24 +24,45 @@ Route::get("/dashboard", function () {
     // JIKA ADMIN ATAU OWNER -> Tampilkan Statistik
     if ($user->role === "admin" || $user->role === "owner") {
         $stats = [
-            "income" => Transaction::where("status", "approved")->sum(
-                "total_price",
-            ),
-            "pending" => Transaction::where(
-                "status",
-                "waiting_approval",
-            )->count(),
+            "income" => Transaction::where("status", "approved")->sum("total_price"),
+            "pending" => Transaction::where("status", "waiting_approval")->count(),
             "packages" => Package::count(),
             "customers" => \App\Models\User::where("role", "customer")->count(),
         ];
 
-        // Ambil 5 transaksi terbaru
+        // Ambil 5 transaksi terbaru (Semua status)
         $recentTransactions = Transaction::with(["user", "package"])
             ->latest()
             ->take(5)
             ->get();
 
-        return view("dashboard", compact("stats", "recentTransactions"));
+        // --- LOGIKA LAPORAN BULANAN DETAIL ---
+        $selectedMonth = request('month', date('m')); // Default bulan ini
+        $selectedYear = request('year', date('Y'));   // Default tahun ini
+
+        // Query transaksi khusus bulan & tahun yang dipilih (Hanya yang Lunas/Selesai)
+        $monthlyTransactions = Transaction::with(["user", "package"])
+            ->where('status', 'approved')
+            ->whereMonth('created_at', $selectedMonth)
+            ->whereYear('created_at', $selectedYear)
+            ->latest()
+            ->get();
+
+        // Hitung total untuk laporan bulan tersebut
+        $monthlyStats = [
+            'income' => $monthlyTransactions->sum('total_price'),
+            'trx_count' => $monthlyTransactions->count(),
+            'pax_count' => $monthlyTransactions->sum('pax_count'),
+        ];
+
+        return view("dashboard", compact(
+            "stats", 
+            "recentTransactions", 
+            "monthlyTransactions", 
+            "monthlyStats", 
+            "selectedMonth", 
+            "selectedYear"
+        ));
     }
 
     // JIKA CUSTOMER -> Tampilkan Riwayat Trip
@@ -55,6 +78,42 @@ Route::get("/dashboard", function () {
 })
     ->middleware(["auth", "verified"])
     ->name("dashboard");
+
+Route::get("/dashboard/export", function () {
+    $user = Auth::user();
+
+    // Pastikan hanya admin/owner yang bisa akses
+    if ($user->role !== "admin" && $user->role !== "owner") {
+        abort(403, 'Unauthorized action.');
+    }
+
+    $selectedMonth = request('month', date('m'));
+    $selectedYear = request('year', date('Y'));
+
+    // Ambil data sesuai bulan & tahun yang difilter
+    $monthlyTransactions = Transaction::with(["user", "package"])
+        ->where('status', 'approved')
+        ->whereMonth('created_at', $selectedMonth)
+        ->whereYear('created_at', $selectedYear)
+        ->latest()
+        ->get();
+
+    $fileName = "Laporan_Brookal_Travel_{$selectedMonth}_{$selectedYear}.xlsx";
+
+    // Langsung generate & download Excel
+    return (new FastExcel($monthlyTransactions))->download($fileName, function ($trx) {
+        return [
+            'Tanggal Transaksi' => $trx->created_at->format('d M Y'),
+            'Pelanggan'         => $trx->user->name,
+            'Paket Wisata'      => $trx->package->name,
+            'Pax'               => $trx->pax_count,
+            'Nominal (Rp)'      => $trx->total_price,
+        ];
+    });
+})
+    ->middleware(["auth", "verified"])
+    ->name("dashboard.export");
+
 
 // --- GROUP ROUTE KHUSUS ADMIN ---
 Route::middleware(["auth"])

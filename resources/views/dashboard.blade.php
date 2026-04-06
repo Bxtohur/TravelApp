@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-12" x-data="{ isModalOpen: false, selectedUser: null }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl border border-gray-100 p-8">
@@ -52,33 +52,34 @@
                         </div>
                         
                         <div class="flex items-center gap-3">
-    <form method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2">
-        <select name="month" onchange="this.form.submit()" class="border-gray-300 focus:border-primary-500 focus:ring-primary-500 rounded-lg shadow-sm text-sm font-medium text-gray-700">
-            @php
-                $months = [
-                    '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
-                    '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
-                    '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
-                ];
-            @endphp
-            @foreach($months as $num => $name)
-                <option value="{{ $num }}" {{ $selectedMonth == $num ? 'selected' : '' }}>{{ $name }}</option>
-            @endforeach
-        </select>
-        
-        <select name="year" onchange="this.form.submit()" class="border-gray-300 focus:border-primary-500 focus:ring-primary-500 rounded-lg shadow-sm text-sm font-medium text-gray-700">
-            @for($y = date('Y'); $y >= 2024; $y--)
-                <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
-            @endfor
-        </select>
-    </form>
+                            <form method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2">
+                                <select name="month" onchange="this.form.submit()" class="border-gray-300 focus:border-primary-500 focus:ring-primary-500 rounded-lg shadow-sm text-sm font-medium text-gray-700">
+                                    @php
+                                        $months = [
+                                            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+                                            '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+                                            '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+                                        ];
+                                    @endphp
+                                    @foreach($months as $num => $name)
+                                        <option value="{{ $num }}" {{ $selectedMonth == $num ? 'selected' : '' }}>{{ $name }}</option>
+                                    @endforeach
+                                </select>
+                                
+                                <select name="year" onchange="this.form.submit()" class="border-gray-300 focus:border-primary-500 focus:ring-primary-500 rounded-lg shadow-sm text-sm font-medium text-gray-700">
+                                    @for($y = date('Y'); $y >= 2024; $y--)
+                                        <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                    @endfor
+                                </select>
+                            </form>
 
-    <div class="h-8 w-px bg-gray-200 mx-1"></div> <a href="{{ route('dashboard.export', ['month' => $selectedMonth, 'year' => $selectedYear]) }}" 
-       class="inline-flex items-center gap-2 bg-green-50 text-green-700 border border-green-200 font-bold py-2 px-4 rounded-lg hover:bg-green-100 transition shadow-sm text-sm">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-        Export
-    </a>
-</div>
+                            <div class="h-8 w-px bg-gray-200 mx-1"></div> 
+                            <a href="{{ route('dashboard.export', ['month' => $selectedMonth, 'year' => $selectedYear]) }}" 
+                               class="inline-flex items-center gap-2 bg-green-50 text-green-700 border border-green-200 font-bold py-2 px-4 rounded-lg hover:bg-green-100 transition shadow-sm text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                Export
+                            </a>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-100 border-b border-gray-100 bg-white">
@@ -111,7 +112,19 @@
                                 @forelse($monthlyTransactions as $trx)
                                 <tr class="bg-white border-b hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap">{{ $trx->created_at->format('d M Y') }}</td>
-                                    <td class="px-6 py-4 font-medium text-gray-900">{{ $trx->user->name }}</td>
+                                    <td class="px-6 py-4 font-medium text-gray-900">
+                                        <button @click.prevent="selectedUser = {
+                                                    name: '{{ addslashes($trx->user->name) }}',
+                                                    initial: '{{ strtoupper(substr($trx->user->name, 0, 1)) }}',
+                                                    email: '{{ addslashes($trx->user->email) }}',
+                                                    role: '{{ ucfirst($trx->user->role) }}',
+                                                    joined: '{{ $trx->user->created_at->format('d F Y') }}',
+                                                    points: '{{ number_format($trx->user->points ?? 0, 0, ',', '.') }}'
+                                                }; isModalOpen = true"
+                                                class="text-primary-600 font-medium hover:text-primary-800 hover:underline transition-colors focus:outline-none text-left">
+                                            {{ $trx->user->name }}
+                                        </button>
+                                    </td>
                                     <td class="px-6 py-4">{{ $trx->package->name }}</td>
                                     <td class="px-6 py-4 text-center">{{ $trx->pax_count }}</td>
                                     <td class="px-6 py-4 text-right font-medium text-primary-600">Rp {{ number_format($trx->total_price, 0, ',', '.') }}</td>
@@ -149,7 +162,19 @@
                             <tbody>
                                 @foreach($recentTransactions as $trx)
                                 <tr class="bg-white border-b hover:bg-gray-50">
-                                    <td class="px-6 py-4 font-medium text-gray-900">{{ $trx->user->name }}</td>
+                                    <td class="px-6 py-4 font-medium text-gray-900">
+                                        <button @click.prevent="selectedUser = {
+                                                    name: '{{ addslashes($trx->user->name) }}',
+                                                    initial: '{{ strtoupper(substr($trx->user->name, 0, 1)) }}',
+                                                    email: '{{ addslashes($trx->user->email) }}',
+                                                    role: '{{ ucfirst($trx->user->role) }}',
+                                                    joined: '{{ $trx->user->created_at->format('d F Y') }}',
+                                                    points: '{{ number_format($trx->user->points ?? 0, 0, ',', '.') }}'
+                                                }; isModalOpen = true"
+                                                class="text-primary-600 font-medium hover:text-primary-800 hover:underline transition-colors focus:outline-none text-left">
+                                            {{ $trx->user->name }}
+                                        </button>
+                                    </td>
                                     <td class="px-6 py-4">{{ $trx->package->name }}</td>
                                     <td class="px-6 py-4">Rp {{ number_format($trx->total_price, 0, ',', '.') }}</td>
                                     <td class="px-6 py-4">
@@ -305,5 +330,69 @@
             @endif
 
         </div>
-    </div>
+
+        <div x-show="isModalOpen" 
+             style="display: none;"
+             class="fixed inset-0 z-50 overflow-y-auto" 
+             aria-labelledby="modal-title" 
+             role="dialog" 
+             aria-modal="true">
+             
+            <div x-show="isModalOpen"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-gray-900/30 backdrop-blur-sm transition-opacity"></div>
+
+            <div class="flex min-h-screen items-center justify-center p-4 text-center pointer-events-none">
+                
+                <div x-show="isModalOpen"
+                     @click.away="isModalOpen = false"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     class="pointer-events-auto relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all border border-gray-100">
+                    
+                    <button @click="isModalOpen = false" class="absolute top-4 right-4 text-gray-400 hover:text-primary-600 transition-colors focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+
+                    <div class="p-8">
+                        <template x-if="selectedUser">
+                            <div>
+                                <div class="flex flex-col items-center text-center mb-6">
+                                    <div class="w-20 h-20 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-600 text-3xl font-bold shadow-inner mb-4" x-text="selectedUser.initial"></div>
+                                    <h3 class="text-2xl font-bold text-gray-900" x-text="selectedUser.name"></h3>
+                                    <p class="text-gray-500 text-sm mt-1 bg-gray-50 px-3 py-1 rounded-full font-medium" x-text="'Role: ' + selectedUser.role"></p>
+                                </div>
+
+                                <div class="space-y-4 border-t border-gray-100 pt-6">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-gray-500">Email</span>
+                                        <span class="text-sm font-bold text-gray-800" x-text="selectedUser.email"></span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-gray-500">Bergabung Sejak</span>
+                                        <span class="text-sm font-bold text-gray-800" x-text="selectedUser.joined"></span>
+                                    </div>
+                                    <div class="flex justify-between items-center p-3 bg-primary-50/50 rounded-xl border border-primary-50">
+                                        <span class="text-sm font-bold text-primary-600 flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                                            Membership Points
+                                        </span>
+                                        <span class="text-sm font-extrabold text-primary-700" x-text="selectedUser.points + ' Pts'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
 </x-app-layout>
